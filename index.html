@@ -119,7 +119,7 @@
     </div>
 
     <script>
-        const words = ['macaco', 'rinoceronte', 'tigre', 'leão', 'elefante', 'girafa', 'zebra', 'urso']; // Adicione mais palavras aqui se quiser!
+        const words = ['🇧🇷', '🇺🇸', '🇮🇹', '🇯🇵', '🇫🇷', '🇩🇪', '🇨🇦', '🇦🇺']; // Adicione mais palavras aqui se quiser!
         let cards = [];
         let flippedCards = [];
         let matchedPairs = 0;
@@ -149,28 +149,29 @@
         }
 
         function createBoard() {
-            gameGrid.innerHTML = ''; // Limpa o tabuleiro se já existir
-            gameGrid.style.gridTemplateColumns = `repeat(${Math.sqrt(cards.length)}, 100px)`; // Ajusta o layout da grade
-            cards.forEach((word, index) => {
-                const cardElement = document.createElement('div');
-                cardElement.classList.add('card');
-                cardElement.dataset.word = word; // Armazena a palavra na carta
+    gameGrid.innerHTML = '';
+    gameGrid.style.gridTemplateColumns = `repeat(${Math.sqrt(cards.length)}, 100px)`;
+    cards.forEach((word, index) => {
+        const cardElement = document.createElement('div');
+        cardElement.classList.add('card');
+        cardElement.dataset.word = word; // Stores the emoji
 
-                const frontFace = document.createElement('div');
-                frontFace.classList.add('front');
-                // frontFace.textContent = '?'; // Opcional: pode colocar um ? ou ícone aqui
+        const frontFace = document.createElement('div');
+        frontFace.classList.add('front');
 
-                const backFace = document.createElement('div');
-                backFace.classList.add('back');
-                backFace.textContent = word;
+        const backFace = document.createElement('div');
+        backFace.classList.add('back');
+        backFace.textContent = word; // Set the emoji as text content
+        backFace.style.fontSize = '3em'; // Make the emoji larger
+        backFace.style.paddingTop = '5px'; // Adjust padding if needed
 
-                cardElement.appendChild(frontFace);
-                cardElement.appendChild(backFace);
+        cardElement.appendChild(frontFace);
+        cardElement.appendChild(backFace);
 
-                cardElement.addEventListener('click', flipCard);
-                gameGrid.appendChild(cardElement);
-            });
-        }
+        cardElement.addEventListener('click', flipCard);
+        gameGrid.appendChild(cardElement);
+    });
+}
 
         function flipCard() {
             if (lockBoard) return; // Não permite clicar se o tabuleiro estiver bloqueado
