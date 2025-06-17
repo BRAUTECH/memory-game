@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo da Memória de Animais</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+
+        .game-container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(4, 100px); /* 4 colunas de 100px */
+            grid-gap: 10px;
+            perspective: 1000px; /* Para o efeito 3D do flip */
+            margin-top: 20px;
+        }
+
+        .card {
+            width: 100px;
+            height: 100px;
+            background-color: #4CAF50; /* Verde */
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #fff;
+            cursor: pointer;
+            transition: transform 0.5s;
+            transform-style: preserve-3d; /* Para o flip 3D */
+            position: relative;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card .front, .card .back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden; /* Esconde a parte de trás antes do flip */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 8px;
+        }
+
+        .card .front {
+            background-color: #4CAF50; /* Parte de trás do cartão */
+            color: #fff;
+        }
+
+        .card .back {
+            background-color: #2196F3; /* Parte da frente do cartão (depois de virar) */
+            color: #fff;
+            transform: rotateY(180deg);
+        }
+
+        .card.matched {
+            background-color: #bbb;
+            cursor: default;
+            pointer-events: none; /* Desabilita cliques em cartas combinadas */
+        }
+
+        .message {
+            margin-top: 20px;
+            font-size: 1.1em;
+            color: #333;
+        }
+
+        button {
+            background-color: #008CBA; /* Azul */
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-top: 20px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #005f6b;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>Jogo da Memória de Animais</h1>
+        <div class="grid-container" id="gameGrid">
+            </div>
+        <div class="message" id="message">Clique em uma carta para começar!</div>
+        <button id="resetButton">Reiniciar Jogo</button>
+    </div>
+
+    <script>
+        const words = ['macaco', 'rinoceronte', 'tigre', 'leão', 'elefante', 'girafa', 'zebra', 'urso']; // Adicione mais palavras aqui se quiser!
+        let cards = [];
+        let flippedCards = [];
+        let matchedPairs = 0;
+        let lockBoard = false; // Impede cliques enquanto 2 cartas estão viradas
+
+        const gameGrid = document.getElementById('gameGrid');
+        const messageDisplay = document.getElementById('message');
+        const resetButton = document.getElementById('resetButton');
+
+        function initializeGame() {
+            // Duplica as palavras para criar os pares
+            cards = [...words, ...words];
+            // Embaralha as cartas
+            shuffleCards(cards);
+            createBoard();
+            messageDisplay.textContent = 'Encontre os pares!';
+            matchedPairs = 0;
+            flippedCards = [];
+            lockBoard = false;
+        }
+
+        function shuffleCards(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function createBoard() {
+            gameGrid.innerHTML = ''; // Limpa o tabuleiro se já existir
+            gameGrid.style.gridTemplateColumns = `repeat(${Math.sqrt(cards.length)}, 100px)`; // Ajusta o layout da grade
+            cards.forEach((word, index) => {
+                const cardElement = document.createElement('div');
+                cardElement.classList.add('card');
+                cardElement.dataset.word = word; // Armazena a palavra na carta
+
+                const frontFace = document.createElement('div');
+                frontFace.classList.add('front');
+                // frontFace.textContent = '?'; // Opcional: pode colocar um ? ou ícone aqui
+
+                const backFace = document.createElement('div');
+                backFace.classList.add('back');
+                backFace.textContent = word;
+
+                cardElement.appendChild(frontFace);
+                cardElement.appendChild(backFace);
+
+                cardElement.addEventListener('click', flipCard);
+                gameGrid.appendChild(cardElement);
+            });
+        }
+
+        function flipCard() {
+            if (lockBoard) return; // Não permite clicar se o tabuleiro estiver bloqueado
+            if (this === flippedCards[0]) return; // Impede clicar na mesma carta duas vezes
+
+            this.classList.add('flipped');
+            flippedCards.push(this);
+
+            if (flippedCards.length === 2) {
+                lockBoard = true; // Bloqueia o tabuleiro
+                checkForMatch();
+            }
+        }
+
+        function checkForMatch() {
+            const [card1, card2] = flippedCards;
+            const isMatch = card1.dataset.word === card2.dataset.word;
+
+            isMatch ? disableCards() : unflipCards();
+        }
+
+        function disableCards() {
+            const [card1, card2] = flippedCards;
+            card1.removeEventListener('click', flipCard);
+            card2.removeEventListener('click', flipCard);
+            card1.classList.add('matched'); // Adiciona classe para estilizar como combinado
+            card2.classList.add('matched');
+
+            matchedPairs++;
+            if (matchedPairs === words.length) {
+                messageDisplay.textContent = 'Parabéns! Você encontrou todos os pares!';
+            }
+
+            resetBoard();
+        }
+
+        function unflipCards() {
+            setTimeout(() => {
+                const [card1, card2] = flippedCards;
+                card1.classList.remove('flipped');
+                card2.classList.remove('flipped');
+                resetBoard();
+            }, 1000); // Espera 1 segundo antes de virar de volta
+        }
+
+        function resetBoard() {
+            [flippedCards, lockBoard] = [[], false]; // Reseta as cartas viradas e desbloqueia o tabuleiro
+        }
+
+        resetButton.addEventListener('click', initializeGame);
+
+        // Inicia o jogo quando a página carrega
+        initializeGame();
+    </script>
+</body>
+</html>
