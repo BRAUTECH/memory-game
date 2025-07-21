@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jogo da Memória de Animais - by Fabio R</title>
+    <title>Colour Memory Game</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -30,16 +30,16 @@
 
         .grid-container {
             display: grid;
-            grid-template-columns: repeat(4, 100px); /* 4 colunas de 100px */
+            grid-template-columns: repeat(4, 100px);
             grid-gap: 10px;
-            perspective: 1000px; /* Para o efeito 3D do flip */
+            perspective: 1000px;
             margin-top: 20px;
         }
 
         .card {
             width: 100px;
             height: 100px;
-            background-color: #4CAF50; /* Verde */
+            background-color: #4CAF50;
             border-radius: 8px;
             display: flex;
             justify-content: center;
@@ -49,7 +49,7 @@
             color: #fff;
             cursor: pointer;
             transition: transform 0.5s;
-            transform-style: preserve-3d; /* Para o flip 3D */
+            transform-style: preserve-3d;
             position: relative;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         }
@@ -58,11 +58,12 @@
             transform: rotateY(180deg);
         }
 
-        .card .front, .card .back {
+        .card .front,
+        .card .back {
             position: absolute;
             width: 100%;
             height: 100%;
-            backface-visibility: hidden; /* Esconde a parte de trás antes do flip */
+            backface-visibility: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -70,12 +71,12 @@
         }
 
         .card .front {
-            background-color: #4CAF50; /* Parte de trás do cartão */
+            background-color: #4CAF50;
             color: #fff;
         }
 
         .card .back {
-            background-color: #2196F3; /* Parte da frente do cartão (depois de virar) */
+            background-color: #2196F3;
             color: #fff;
             transform: rotateY(180deg);
         }
@@ -83,7 +84,13 @@
         .card.matched {
             background-color: #bbb;
             cursor: default;
-            pointer-events: none; /* Desabilita cliques em cartas combinadas */
+            pointer-events: none;
+        }
+
+        .color-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 5px;
         }
 
         .message {
@@ -93,7 +100,7 @@
         }
 
         button {
-            background-color: #008CBA; /* Azul */
+            background-color: #008CBA;
             color: white;
             padding: 10px 20px;
             border: none;
@@ -111,31 +118,28 @@
 </head>
 <body>
     <div class="game-container">
-        <h1>Jogo da Memória de Animais</h1>
-        <div class="grid-container" id="gameGrid">
-            </div>
-        <div class="message" id="message">Clique em uma carta para começar!</div>
-        <button id="resetButton">Reiniciar Jogo</button>
+        <h1>Colour Memory Game</h1>
+        <div class="grid-container" id="gameGrid"></div>
+        <div class="message" id="message">Click a card to start!</div>
+        <button id="resetButton">Reset Game</button>
     </div>
 
     <script>
-        const words = ['🇧🇷', '🇺🇸', '🇮🇹', '🇯🇵', '🇫🇷', '🇩🇪', '🇨🇦', '🇦🇺']; // Adicione mais palavras aqui se quiser!
+        const colours = ['#f44336', '#3f51b5', '#4caf50', '#ffeb3b', '#ff9800', '#9c27b0', '#009688', '#795548'];
         let cards = [];
         let flippedCards = [];
         let matchedPairs = 0;
-        let lockBoard = false; // Impede cliques enquanto 2 cartas estão viradas
+        let lockBoard = false;
 
         const gameGrid = document.getElementById('gameGrid');
         const messageDisplay = document.getElementById('message');
         const resetButton = document.getElementById('resetButton');
 
         function initializeGame() {
-            // Duplica as palavras para criar os pares
-            cards = [...words, ...words];
-            // Embaralha as cartas
+            cards = [...colours, ...colours];
             shuffleCards(cards);
             createBoard();
-            messageDisplay.textContent = 'Encontre os pares! (created by F. Ribeiro)';
+            messageDisplay.textContent = 'Find the pairs!';
             matchedPairs = 0;
             flippedCards = [];
             lockBoard = false;
@@ -149,47 +153,48 @@
         }
 
         function createBoard() {
-    gameGrid.innerHTML = '';
-    gameGrid.style.gridTemplateColumns = `repeat(${Math.sqrt(cards.length)}, 100px)`;
-    cards.forEach((word, index) => {
-        const cardElement = document.createElement('div');
-        cardElement.classList.add('card');
-        cardElement.dataset.word = word; // Stores the emoji
+            gameGrid.innerHTML = '';
+            gameGrid.style.gridTemplateColumns = `repeat(${Math.sqrt(cards.length)}, 100px)`;
+            cards.forEach((colour) => {
+                const cardElement = document.createElement('div');
+                cardElement.classList.add('card');
+                cardElement.dataset.colour = colour;
 
-        const frontFace = document.createElement('div');
-        frontFace.classList.add('front');
+                const frontFace = document.createElement('div');
+                frontFace.classList.add('front');
 
-        const backFace = document.createElement('div');
-        backFace.classList.add('back');
-        backFace.textContent = word; // Set the emoji as text content
-        backFace.style.fontSize = '3em'; // Make the emoji larger
-        backFace.style.paddingTop = '5px'; // Adjust padding if needed
+                const backFace = document.createElement('div');
+                backFace.classList.add('back');
 
-        cardElement.appendChild(frontFace);
-        cardElement.appendChild(backFace);
+                const colourBox = document.createElement('div');
+                colourBox.classList.add('color-icon');
+                colourBox.style.backgroundColor = colour;
+                backFace.appendChild(colourBox);
 
-        cardElement.addEventListener('click', flipCard);
-        gameGrid.appendChild(cardElement);
-    });
-}
+                cardElement.appendChild(frontFace);
+                cardElement.appendChild(backFace);
+
+                cardElement.addEventListener('click', flipCard);
+                gameGrid.appendChild(cardElement);
+            });
+        }
 
         function flipCard() {
-            if (lockBoard) return; // Não permite clicar se o tabuleiro estiver bloqueado
-            if (this === flippedCards[0]) return; // Impede clicar na mesma carta duas vezes
+            if (lockBoard) return;
+            if (this === flippedCards[0]) return;
 
             this.classList.add('flipped');
             flippedCards.push(this);
 
             if (flippedCards.length === 2) {
-                lockBoard = true; // Bloqueia o tabuleiro
+                lockBoard = true;
                 checkForMatch();
             }
         }
 
         function checkForMatch() {
             const [card1, card2] = flippedCards;
-            const isMatch = card1.dataset.word === card2.dataset.word;
-
+            const isMatch = card1.dataset.colour === card2.dataset.colour;
             isMatch ? disableCards() : unflipCards();
         }
 
@@ -197,12 +202,12 @@
             const [card1, card2] = flippedCards;
             card1.removeEventListener('click', flipCard);
             card2.removeEventListener('click', flipCard);
-            card1.classList.add('matched'); // Adiciona classe para estilizar como combinado
+            card1.classList.add('matched');
             card2.classList.add('matched');
 
             matchedPairs++;
-            if (matchedPairs === words.length) {
-                messageDisplay.textContent = 'Parabéns! Você encontrou todos os pares!';
+            if (matchedPairs === colours.length) {
+                messageDisplay.textContent = 'Congratulations! You found them all!';
             }
 
             resetBoard();
@@ -214,16 +219,14 @@
                 card1.classList.remove('flipped');
                 card2.classList.remove('flipped');
                 resetBoard();
-            }, 1000); // Espera 1 segundo antes de virar de volta
+            }, 1000);
         }
 
         function resetBoard() {
-            [flippedCards, lockBoard] = [[], false]; // Reseta as cartas viradas e desbloqueia o tabuleiro
+            [flippedCards, lockBoard] = [[], false];
         }
 
         resetButton.addEventListener('click', initializeGame);
-
-        // Inicia o jogo quando a página carrega
         initializeGame();
     </script>
 </body>
