@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Colour Memory Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+
+        .game-container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(4, 100px);
+            grid-gap: 10px;
+            perspective: 1000px;
+            margin-top: 20px;
+        }
+
+        .card {
+            width: 100px;
+            height: 100px;
+            background-color: #4CAF50;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #fff;
+            cursor: pointer;
+            transition: transform 0.5s;
+            transform-style: preserve-3d;
+            position: relative;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card .front,
+        .card .back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 8px;
+        }
+
+        .card .front {
+            background-color: #4CAF50;
+            color: #fff;
+        }
+
+        .card .back {
+            background-color: #2196F3;
+            color: #fff;
+            transform: rotateY(180deg);
+        }
+
+        .card.matched {
+            background-color: #bbb;
+            cursor: default;
+            pointer-events: none;
+        }
+
+        .color-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 5px;
+        }
+
+        .message {
+            margin-top: 20px;
+            font-size: 1.1em;
+            color: #333;
+        }
+
+        button {
+            background-color: #008CBA;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-top: 20px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #005f6b;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>Colour Memory Game</h1>
+        <div class="grid-container" id="gameGrid"></div>
+        <div class="message" id="message">Click a card to start!</div>
+        <button id="resetButton">Reset Game</button>
+    </div>
+
+    <script>
+        const colours = ['#f44336', '#3f51b5', '#4caf50', '#ffeb3b', '#ff9800', '#9c27b0', '#009688', '#795548'];
+        let cards = [];
+        let flippedCards = [];
+        let matchedPairs = 0;
+        let lockBoard = false;
+
+        const gameGrid = document.getElementById('gameGrid');
+        const messageDisplay = document.getElementById('message');
+        const resetButton = document.getElementById('resetButton');
+
+        function initializeGame() {
+            cards = [...colours, ...colours];
+            shuffleCards(cards);
+            createBoard();
+            messageDisplay.textContent = 'Find the pairs!';
+            matchedPairs = 0;
+            flippedCards = [];
+            lockBoard = false;
+        }
+
+        function shuffleCards(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function createBoard() {
+            gameGrid.innerHTML = '';
+            gameGrid.style.gridTemplateColumns = `repeat(${Math.sqrt(cards.length)}, 100px)`;
+            cards.forEach((colour) => {
+                const cardElement = document.createElement('div');
+                cardElement.classList.add('card');
+                cardElement.dataset.colour = colour;
+
+                const frontFace = document.createElement('div');
+                frontFace.classList.add('front');
+
+                const backFace = document.createElement('div');
+                backFace.classList.add('back');
+
+                const colourBox = document.createElement('div');
+                colourBox.classList.add('color-icon');
+                colourBox.style.backgroundColor = colour;
+                backFace.appendChild(colourBox);
+
+                cardElement.appendChild(frontFace);
+                cardElement.appendChild(backFace);
+
+                cardElement.addEventListener('click', flipCard);
+                gameGrid.appendChild(cardElement);
+            });
+        }
+
+        function flipCard() {
+            if (lockBoard) return;
+            if (this === flippedCards[0]) return;
+
+            this.classList.add('flipped');
+            flippedCards.push(this);
+
+            if (flippedCards.length === 2) {
+                lockBoard = true;
+                checkForMatch();
+            }
+        }
+
+        function checkForMatch() {
+            const [card1, card2] = flippedCards;
+            const isMatch = card1.dataset.colour === card2.dataset.colour;
+            isMatch ? disableCards() : unflipCards();
+        }
+
+        function disableCards() {
+            const [card1, card2] = flippedCards;
+            card1.removeEventListener('click', flipCard);
+            card2.removeEventListener('click', flipCard);
+            card1.classList.add('matched');
+            card2.classList.add('matched');
+
+            matchedPairs++;
+            if (matchedPairs === colours.length) {
+                messageDisplay.textContent = 'Congratulations! You found them all!';
+            }
+
+            resetBoard();
+        }
+
+        function unflipCards() {
+            setTimeout(() => {
+                const [card1, card2] = flippedCards;
+                card1.classList.remove('flipped');
+                card2.classList.remove('flipped');
+                resetBoard();
+            }, 1000);
+        }
+
+        function resetBoard() {
+            [flippedCards, lockBoard] = [[], false];
+        }
+
+        resetButton.addEventListener('click', initializeGame);
+        initializeGame();
+    </script>
+</body>
+</html>
