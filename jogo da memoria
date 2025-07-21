@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jogo da Memória de Animais</title>
+    <title>Jogo da Memória de países</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -111,7 +111,7 @@
 </head>
 <body>
     <div class="game-container">
-        <h1>Jogo da Memória de Animais</h1>
+        <h1>Jogo da Memória de países</h1>
         <div class="grid-container" id="gameGrid">
             </div>
         <div class="message" id="message">Clique em uma carta para começar!</div>
